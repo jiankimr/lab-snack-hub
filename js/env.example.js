@@ -1,0 +1,3 @@
+const ENV = {
+  ADMIN_PASS: 'YOUR_ADMIN_PASSWORD',
+};

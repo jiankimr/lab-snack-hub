@@ -1,0 +1,29 @@
+[build]
+  command = "echo \"const ENV = { ADMIN_PASS: '$ADMIN_PASS' };\" > js/env.js"
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+
+[[redirects]]
+  from = "/home"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/history"
+  to = "/history.html"
+  status = 200
+
+[[redirects]]
+  from = "/guide"
+  to = "/guide.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>관리자 — RISE Lab Snack Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<header class="glass-nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo">
+      <img src="assets/rise-logo.png" alt="RISE" class="logo-img">
+      <span class="logo-text">Snack Hub</span>
+      <span class="admin-badge">ADMIN</span>
+    </a>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link"><i class="bi bi-arrow-left"></i> 메인으로</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Password Lock Overlay -->
+<div id="admin-lock" class="admin-lock-overlay">
+  <div class="admin-lock-card">
+    <div class="admin-lock-icon"><i class="bi bi-shield-lock-fill"></i></div>
+    <h2>관리자 인증</h2>
+    <p>비밀번호를 입력하세요</p>
+    <form id="lock-form" class="admin-lock-form">
+      <input type="password" id="lock-password" class="admin-lock-input" placeholder="비밀번호" autocomplete="off" autofocus>
+      <button type="submit" class="btn-admin accent">확인</button>
+    </form>
+    <p id="lock-error" class="admin-lock-error" style="display:none">비밀번호가 틀렸습니다.</p>
+  </div>
+</div>
+
+<main class="main-content" id="admin-content" style="display:none;">
+  <div class="container">
+
+    <div class="admin-page-header">
+      <h1>관리자 패널</h1>
+      <input type="month" class="admin-month-input" id="admin-month">
+    </div>
+
+    <!-- Suggestion Management -->
+    <div class="admin-card">
+      <h3 class="admin-card-title"><i class="bi bi-list-check"></i> 추천 목록 관리</h3>
+      <p class="admin-card-desc">좋아요 순 정렬. 확정할 항목 선택 후 가격을 입력하세요.</p>
+
+      <div class="admin-budget-bar">
+        <div class="budget-item">
+          <span class="budget-item-label">예산</span>
+          <span class="budget-item-value" id="admin-budget">₩200,000</span>
+        </div>
+        <div class="budget-item">
+          <span class="budget-item-label">선택 합계</span>
+          <span class="budget-item-value" id="admin-selected-total" style="color:var(--accent)">₩0</span>
+        </div>
+        <div class="budget-item">
+          <span class="budget-item-label">남은 예산</span>
+          <span class="budget-item-value ok" id="admin-remaining">₩200,000</span>
+        </div>
+      </div>
+
+      <div class="admin-table-wrap" id="admin-suggestions">
+        <p style="color:var(--text-tertiary); text-align:center; padding:var(--space-2xl) 0;">로딩 중...</p>
+      </div>
+
+      <div class="admin-actions">
+        <button class="btn-admin green" id="btn-confirm">
+          <i class="bi bi-check-circle"></i> 선택 항목 확정
+        </button>
+        <button class="btn-admin amber" id="btn-carryover">
+          <i class="bi bi-arrow-repeat"></i> 미선택 이월
+        </button>
+      </div>
+    </div>
+
+    <!-- Slack -->
+    <div class="admin-card">
+      <h3 class="admin-card-title"><i class="bi bi-megaphone"></i> 슬랙 공지</h3>
+      <p class="admin-card-desc">확정 품목을 슬랙 채널에 공지합니다.</p>
+      <button class="btn-admin blue" id="btn-slack">
+        <i class="bi bi-send"></i> 슬랙 공지 보내기
+      </button>
+    </div>
+
+    <!-- Purchase -->
+    <div class="admin-card">
+      <h3 class="admin-card-title"><i class="bi bi-bag-check"></i> 구매 완료 처리</h3>
+      <p class="admin-card-desc">확정 품목을 구매 완료로 처리하고 기록에 저장합니다.</p>
+      <button class="btn-admin purple" id="btn-purchased">
+        <i class="bi bi-check2-all"></i> 구매 완료
+      </button>
+    </div>
+
+    <!-- Preview -->
+    <div class="admin-card">
+      <h3 class="admin-card-title"><i class="bi bi-eye"></i> 확정 품목 미리보기</h3>
+      <div id="admin-confirmed-preview">
+        <p style="color:var(--text-tertiary)">확정된 품목이 없습니다.</p>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="admin-card">
+      <h3 class="admin-card-title"><i class="bi bi-link-45deg"></i> 바로가기</h3>
+      <div class="quick-links" style="margin-top:0;">
+        <a href="#" class="link-card" id="link-spreadsheet" target="_blank">
+          <div class="link-icon green"><i class="bi bi-table"></i></div>
+          <div class="link-info">
+            <h4>구매 대장</h4>
+            <p>스프레드시트 원본</p>
+          </div>
+          <i class="bi bi-arrow-right link-arrow"></i>
+        </a>
+        <a href="#" class="link-card" id="link-receipt" target="_blank">
+          <div class="link-icon amber"><i class="bi bi-receipt-cutoff"></i></div>
+          <div class="link-info">
+            <h4>영수증 폴더</h4>
+            <p>Google Drive</p>
+          </div>
+          <i class="bi bi-arrow-right link-arrow"></i>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Toast -->
+<div id="toast" class="toast-notification" aria-live="polite">
+  <div class="toast-icon" id="toast-icon"><i class="bi bi-check-circle-fill"></i></div>
+  <span id="toast-body">알림</span>
+</div>
+
+<script src="js/env.js"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

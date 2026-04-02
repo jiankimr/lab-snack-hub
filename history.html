@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>구매 기록 — RISE Lab Snack Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navigation -->
+<header class="glass-nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo">
+      <img src="assets/rise-logo.png" alt="RISE" class="logo-img">
+      <span class="logo-text">Snack Hub</span>
+    </a>
+    <nav class="nav-links" id="nav-links">
+      <a href="index.html" class="nav-link">추천 / 투표</a>
+      <a href="history.html" class="nav-link active">구매 기록</a>
+      <a href="guide.html" class="nav-link">가이드</a>
+    </nav>
+    <button class="nav-toggle" id="nav-toggle" aria-label="메뉴">
+      <i class="bi bi-list"></i>
+    </button>
+  </div>
+</header>
+
+<main class="main-content">
+  <div class="container">
+
+    <!-- Month Navigation -->
+    <div class="history-header">
+      <h2 class="section-title" style="margin-bottom:0">구매 기록</h2>
+      <div class="history-controls">
+        <div class="month-selector">
+          <button class="month-btn" id="btn-month-prev"><i class="bi bi-chevron-left"></i></button>
+          <span class="month-display" id="history-month-display">2026년 4월</span>
+          <button class="month-btn" id="btn-month-next"><i class="bi bi-chevron-right"></i></button>
+        </div>
+        <button class="btn-ghost" id="btn-all-history">전체 보기</button>
+      </div>
+    </div>
+
+    <!-- History List -->
+    <div id="history-list" class="board-grid">
+      <div class="board-empty">
+        <div class="empty-icon">📦</div>
+        <p>로딩 중...</p>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="history-summary" id="history-summary" style="display:none;">
+      <div class="summary-item">
+        <span class="summary-label">구매 품목</span>
+        <span class="summary-value" id="summary-count">0개</span>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-item">
+        <span class="summary-label">총 사용 금액</span>
+        <span class="summary-value highlight" id="summary-total">₩0</span>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links">
+      <a href="#" class="link-card" id="link-receipt" target="_blank">
+        <div class="link-icon amber"><i class="bi bi-receipt-cutoff"></i></div>
+        <div class="link-info">
+          <h4>영수증 폴더</h4>
+          <p>Google Drive</p>
+        </div>
+        <i class="bi bi-arrow-right link-arrow"></i>
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span class="footer-copy">&copy; 2026 RISE Lab</span>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div id="toast" class="toast-notification" aria-live="polite">
+  <div class="toast-icon" id="toast-icon"><i class="bi bi-check-circle-fill"></i></div>
+  <span id="toast-body">알림</span>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/history.js"></script>
+</body>
+</html>

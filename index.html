@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RISE Lab Snack Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="glass-nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo">
+      <img src="assets/rise-logo.png" alt="RISE" class="logo-img">
+      <span class="logo-text">Snack Hub</span>
+    </a>
+    <nav class="nav-links" id="nav-links">
+      <a href="index.html" class="nav-link active">추천 / 투표</a>
+      <a href="history.html" class="nav-link">구매 기록</a>
+      <a href="guide.html" class="nav-link">가이드</a>
+    </nav>
+    <button class="nav-toggle" id="nav-toggle" aria-label="메뉴">
+      <i class="bi bi-list"></i>
+    </button>
+  </div>
+</header>
+
+<main class="main-content">
+  <div class="container">
+
+    <h2 class="section-label">간식 추천하기</h2>
+    <div class="suggest-bar">
+      <form id="suggest-form" class="suggest-form">
+        <div class="suggest-form-row">
+          <div class="suggest-input-group grow">
+            <i class="bi bi-cookie"></i>
+            <input type="text" class="suggest-input" id="input-snack" required placeholder="먹고 싶은 간식 이름">
+          </div>
+          <div class="suggest-input-group">
+            <i class="bi bi-link-45deg"></i>
+            <input type="url" class="suggest-input" id="input-link" placeholder="구매 링크 (선택)">
+          </div>
+          <div class="suggest-input-group medium">
+            <i class="bi bi-tag"></i>
+            <input type="number" class="suggest-input" id="input-price" placeholder="가격 (선택)" min="0">
+          </div>
+          <div class="suggest-input-group medium">
+            <i class="bi bi-box"></i>
+            <input type="number" class="suggest-input" id="input-qty" placeholder="수량 (선택)" min="1">
+          </div>
+          <button type="submit" class="btn-suggest" id="btn-suggest">
+            <i class="bi bi-plus-lg"></i>
+            <span class="btn-suggest-text">추천</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div id="confirmed-section" class="confirmed-section" style="display:none;">
+      <h3 class="confirmed-section-title"><i class="bi bi-bag-check-fill"></i> 이번 달 확정 간식</h3>
+      <div id="confirmed-list" class="confirmed-list"></div>
+    </div>
+
+    <div class="board-header">
+      <div class="board-header-left">
+        <h2 class="board-title" id="month-title">4월 간식 보드</h2>
+        <span class="board-subtitle" id="month-deadline"></span>
+      </div>
+      <span class="board-count" id="suggestion-count">0개 추천</span>
+    </div>
+
+    <div id="suggestions-list" class="board-grid">
+      <div class="board-empty">
+        <div class="empty-icon">🍪</div>
+        <p>아직 추천된 간식이 없습니다.<br>위에서 첫 번째로 추천해보세요!</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span class="footer-copy">&copy; 2026 RISE Lab</span>
+  </div>
+</footer>
+
+<div id="toast" class="toast-notification" aria-live="polite">
+  <div class="toast-icon" id="toast-icon"><i class="bi bi-check-circle-fill"></i></div>
+  <span id="toast-body">알림</span>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
