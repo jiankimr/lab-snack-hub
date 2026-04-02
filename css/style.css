@@ -16,6 +16,7 @@
 }
 
 :root {
+  color-scheme: light;
   /* Palette — warm, inviting, snack-like */
   --bg:        #fafaf9;
   --bg-alt:    #f5f3f0;
