@@ -36,7 +36,7 @@
     localStorage.setItem(CONFIG.VOTE_STORAGE_KEY, JSON.stringify([...s]));
   }
 
-  const EMOJIS = ['🍪','🍩','🍫','🧁','🍿','🥨','🍬','🍭','🧀','🥜','🍙','🍘','🥐','🍰','🎂','🍡','🥤','🧃','☕','🍵'];
+  const EMOJIS = ['🧃','🥐','🍰','🥨','🍫'];
   function emoji(name) {
     let h = 0;
     for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
@@ -70,35 +70,115 @@
     const m = now.getMonth() + 1;
     const d = now.getDate();
 
-    // 2026년 4월 3일 자정 전까지: "4월 간식 보드 (4월 3일 구매 확정 예정)"
     if (y === 2026 && m === 4 && d <= 3) {
       $('#month-title').textContent = '4월 간식 보드';
       $('#month-deadline').textContent = '(4월 3일 구매 확정 예정)';
       return;
     }
 
-    // 일반: N+1월 보드, N월 말일 구매 확정
     const nextM = m === 12 ? 1 : m + 1;
     const lastDay = new Date(y, m, 0).getDate();
     $('#month-title').textContent = `${nextM}월 간식 보드`;
     $('#month-deadline').textContent = `(${m}월 ${lastDay}일 구매 확정 예정)`;
   }
 
-  // ─── Suggestions + Confirmed ───
+  // ─── State ───
+  let allItems = [];
+  let currentSort = 'votes'; // 'votes' | 'date'
+
+  function sortItems(items, mode) {
+    return [...items].sort((a, b) => {
+      if (mode === 'votes') {
+        if ((b.votes || 0) !== (a.votes || 0)) return (b.votes || 0) - (a.votes || 0);
+        return new Date(a.date || 0) - new Date(b.date || 0);
+      }
+      return new Date(b.date || 0) - new Date(a.date || 0);
+    });
+  }
+
+  function formatPrice(val) {
+    const n = Number(val);
+    if (!val && val !== 0) return '—';
+    if (isNaN(n)) return String(val);
+    return '\u20A9' + n.toLocaleString('ko-KR');
+  }
+
+  function renderItems() {
+    const container = $('#suggestions-list');
+    const voted = getVotedSet();
+
+    const confirmed = allItems.filter(i => i.status === 'confirmed' || i.status === 'purchased');
+    const pending = allItems.filter(i => i.status !== 'confirmed' && i.status !== 'purchased');
+    const sorted = [...sortItems(pending, currentSort), ...confirmed];
+
+    if (sorted.length === 0) {
+      container.innerHTML = `
+        <div class="board-empty">
+          <div class="empty-icon">📦</div>
+          <p>아직 추천된 간식이 없습니다.<br>위에서 첫 번째로 추천해보세요!</p>
+        </div>`;
+      return;
+    }
+
+    const rows = sorted.map((item) => {
+      const v = voted.has(String(item.rowIndex));
+      const votes = Number(item.votes) || 0;
+      const rowCls = item.status === 'confirmed' ? 'row-confirmed'
+        : item.status === 'purchased' ? 'row-purchased' : '';
+      return `
+        <tr class="${rowCls}">
+          <td class="td-name">${escapeHtml(item.snackName)}${item.carriedOver ? ' <span class="badge-carryover" style="font-size:0.65rem">이월</span>' : ''}</td>
+          <td class="td-center">${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" style="color:var(--accent)"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
+          <td class="td-price">${formatPrice(item.price)}</td>
+          <td class="td-date">${item.date || '—'}</td>
+          <td class="td-center">
+            <button class="btn-vote-inline ${v ? 'voted' : votes === 0 ? 'zero' : ''}" data-row="${item.rowIndex}" ${v ? 'disabled' : ''}>
+              <i class="bi bi-heart${v ? '-fill' : ''}"></i> ${votes}
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="board-table-wrap">
+        <table class="board-table">
+          <thead>
+            <tr>
+              <th>간식</th>
+              <th style="width:40px">링크</th>
+              <th style="width:100px">예상가</th>
+              <th style="width:100px" class="th-date">등록일</th>
+              <th style="width:80px">좋아요</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+
+    container.querySelectorAll('.btn-vote-inline:not([disabled])').forEach((btn) =>
+      btn.addEventListener('click', handleVote)
+    );
+  }
+
+  // ─── Load Suggestions ───
   async function loadSuggestions() {
     const container = $('#suggestions-list');
     const confirmedSection = $('#confirmed-section');
     const confirmedList = $('#confirmed-list');
-    const voted = getVotedSet();
+
+    container.innerHTML = `
+      <div class="board-empty">
+        <div class="empty-icon"><i class="bi bi-arrow-repeat spin"></i></div>
+        <p>불러오는 중...</p>
+      </div>`;
 
     try {
       const data = await API.getSuggestions(todayMonthKey());
-      const items = data.suggestions || [];
+      allItems = data.suggestions || [];
 
-      const confirmed = items.filter(i => i.status === 'confirmed' || i.status === 'purchased');
-      const pending = items.filter(i => i.status !== 'confirmed' && i.status !== 'purchased');
+      const confirmed = allItems.filter(i => i.status === 'confirmed' || i.status === 'purchased');
 
-      $('#suggestion-count').textContent = `${items.length}개 추천`;
+      $('#suggestion-count').textContent = `${allItems.length}개 추천`;
 
       if (confirmed.length > 0) {
         confirmedSection.style.display = '';
@@ -113,49 +193,7 @@
         confirmedSection.style.display = 'none';
       }
 
-      const allItems = [...pending, ...confirmed];
-
-      if (allItems.length === 0) {
-        container.innerHTML = `
-          <div class="board-empty">
-            <div class="empty-icon">🍪</div>
-            <p>아직 추천된 간식이 없습니다.<br>위에서 첫 번째로 추천해보세요!</p>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = allItems.map((item) => {
-        const v = voted.has(String(item.rowIndex));
-        const cls = (item.status === 'confirmed' || item.status === 'purchased')
-          ? 'confirmed'
-          : item.carriedOver ? 'carried-over' : '';
-        return `
-        <div class="snack-card ${cls}">
-          <div class="snack-card-header">
-            <span class="snack-name">${emoji(item.snackName)} ${escapeHtml(item.snackName)}</span>
-            <div class="snack-badges">
-              ${item.carriedOver ? '<span class="badge-carryover">이월</span>' : ''}
-              ${item.status === 'confirmed' ? '<span class="badge-confirmed">확정</span>' : ''}
-              ${item.status === 'purchased' ? '<span class="badge-confirmed">구매완료</span>' : ''}
-            </div>
-          </div>
-          ${item.price ? `<span class="snack-price">${formatKRW(item.price)}</span>` : ''}
-          <div class="snack-footer">
-            <span class="snack-meta">
-              ${item.date || ''}
-              ${item.link ? ` · <a href="${escapeHtml(item.link)}" target="_blank">링크</a>` : ''}
-            </span>
-            <button class="btn-vote ${v ? 'voted' : ''}" data-row="${item.rowIndex}" ${v ? 'disabled' : ''}>
-              <i class="bi bi-heart${v ? '-fill' : ''}"></i>
-              ${item.votes || 0}
-            </button>
-          </div>
-        </div>`;
-      }).join('');
-
-      container.querySelectorAll('.btn-vote:not([disabled])').forEach((btn) =>
-        btn.addEventListener('click', handleVote)
-      );
+      renderItems();
     } catch {
       container.innerHTML = `
         <div class="board-empty">
@@ -181,6 +219,30 @@
       btn.disabled = false;
       showToast('투표 실패', true);
     }
+  }
+
+  // ─── Sort toggle ───
+  function initSort() {
+    const btnVotes = $('#sort-votes');
+    const btnDate = $('#sort-date');
+    if (!btnVotes || !btnDate) return;
+
+    function updateActive() {
+      btnVotes.classList.toggle('active', currentSort === 'votes');
+      btnDate.classList.toggle('active', currentSort === 'date');
+    }
+
+    btnVotes.addEventListener('click', () => {
+      currentSort = 'votes';
+      updateActive();
+      renderItems();
+    });
+    btnDate.addEventListener('click', () => {
+      currentSort = 'date';
+      updateActive();
+      renderItems();
+    });
+    updateActive();
   }
 
   // ─── Suggest form ───
@@ -216,6 +278,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     initNav();
     updateMonthTitle();
+    initSort();
     initForm();
     loadSuggestions();
   });

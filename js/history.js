@@ -39,7 +39,7 @@
     }
   }
 
-  const EMOJIS = ['🍪','🍩','🍫','🧁','🍿','🥨','🍬','🍭','🧀','🥜','🍙','🍘','🥐','🍰','🎂','🍡','🥤','🧃','☕','🍵'];
+  const EMOJIS = ['🧃','🥐','🍰','🍬','🍫'];
   function emoji(name) {
     let h = 0;
     for (let i = 0; i < (name || '').length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
