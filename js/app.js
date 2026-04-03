@@ -17,16 +17,32 @@
 
   let boardDisplayMonth = null;
 
+  function parseBoardMonth(val) {
+    if (!val) return null;
+    const s = String(val).trim();
+    if (/^\d{4}-\d{2}$/.test(s)) return s;
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const kd = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+      return `${kd.getFullYear()}-${String(kd.getMonth() + 1).padStart(2, '0')}`;
+    }
+    return null;
+  }
+
   async function loadBoardDisplayMonth() {
-    try {
-      const data = await API.getBoardMonth();
-      boardDisplayMonth = data.boardMonth;
-    } catch {
+    const fallback = () => {
       const d = kstNow();
       const m = d.getMonth() + 1;
       const nm = m === 12 ? 1 : m + 1;
       const ny = m === 12 ? d.getFullYear() + 1 : d.getFullYear();
-      boardDisplayMonth = `${ny}-${String(nm).padStart(2, '0')}`;
+      return `${ny}-${String(nm).padStart(2, '0')}`;
+    };
+
+    try {
+      const data = await API.getBoardMonth();
+      boardDisplayMonth = parseBoardMonth(data.boardMonth) || fallback();
+    } catch {
+      boardDisplayMonth = fallback();
     }
   }
 

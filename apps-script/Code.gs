@@ -44,8 +44,12 @@ function getStoredBoardMonth() {
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][0]).trim() === 'boardMonth') {
-      const val = String(data[i][1]).trim();
-      if (val && val.length >= 7) return val.substring(0, 7);
+      const val = data[i][1];
+      if (val instanceof Date) {
+        return Utilities.formatDate(val, 'Asia/Seoul', 'yyyy-MM');
+      }
+      const str = String(val).trim();
+      if (str && /^\d{4}-\d{2}$/.test(str)) return str;
     }
   }
   return getCurrentMonthKST();
@@ -62,12 +66,14 @@ function setStoredBoardMonth(body) {
 
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][0]).trim() === 'boardMonth') {
-      sheet.getRange(i + 1, 2).setValue(month);
+      sheet.getRange(i + 1, 2).setNumberFormat('@').setValue(month);
       return jsonResponse({ success: true, boardMonth: month });
     }
   }
 
   sheet.appendRow(['boardMonth', month]);
+  const lastRow = sheet.getLastRow();
+  sheet.getRange(lastRow, 2).setNumberFormat('@');
   return jsonResponse({ success: true, boardMonth: month });
 }
 
@@ -606,10 +612,10 @@ function insertFixedItemsForMonth(monthOverride) {
   const sugSheet = getSheet(SHEET.SUGGESTIONS);
   const sugData = sugSheet.getDataRange().getValues();
 
-  // 해당 월에 이미 존재하는 간식 이름 수집
+  // 해당 월에 이미 존재하는 간식 이름 수집 (archived 제외)
   const existing = new Set();
   for (let i = 1; i < sugData.length; i++) {
-    if (normalizeMonth(sugData[i][0]) === month) {
+    if (normalizeMonth(sugData[i][0]) === month && sugData[i][8] !== 'archived') {
       existing.add(String(sugData[i][2]).trim());
     }
   }
