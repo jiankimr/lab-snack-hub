@@ -15,6 +15,7 @@ const SHEET = {
   SUGGESTIONS: '추천목록',
   PURCHASE_LOG: '구매기록',
   CONFIG: '설정',
+  FIXED_ITEMS: '고정품목',
 };
 
 // ─── 헬퍼 ───
@@ -75,6 +76,8 @@ function doGet(e) {
         return getDashboard(e.parameter.month);
       case 'getPurchaseHistory':
         return getPurchaseHistory();
+      case 'getFixedItems':
+        return getFixedItems();
       default:
         return jsonResponse({ error: 'Unknown action' });
     }
@@ -107,6 +110,14 @@ function doPost(e) {
         return notifySlack(body);
       case 'carryOver':
         return carryOver(body);
+      case 'addFixedItem':
+        return addFixedItem(body);
+      case 'removeFixedItem':
+        return removeFixedItem(body);
+      case 'toggleFixedItem':
+        return toggleFixedItem(body);
+      case 'insertFixedItems':
+        return insertFixedItemsForMonth(body.month);
       default:
         return jsonResponse({ error: 'Unknown action' });
     }
@@ -465,4 +476,111 @@ function getPurchaseHistory() {
   records.reverse();
 
   return jsonResponse({ records });
+}
+
+// ─── 고정 품목 ───
+// 시트 컬럼: A:간식이름 | B:링크 | C:예상가격 | D:수량 | E:활성여부
+
+function getFixedItems() {
+  const sheet = getSheet(SHEET.FIXED_ITEMS);
+  if (!sheet) return jsonResponse({ items: [] });
+
+  const data = sheet.getDataRange().getValues();
+  const items = [];
+  for (let i = 1; i < data.length; i++) {
+    items.push({
+      rowIndex: i + 1,
+      snackName: data[i][0] || '',
+      link: data[i][1] || '',
+      price: data[i][2] || '',
+      quantity: data[i][3] || 1,
+      active: data[i][4] === 'Y' || data[i][4] === true,
+    });
+  }
+  return jsonResponse({ items });
+}
+
+function addFixedItem(body) {
+  if (!body.snackName || !String(body.snackName).trim()) {
+    return jsonResponse({ error: '간식 이름을 입력해주세요.' });
+  }
+
+  const sheet = getSheet(SHEET.FIXED_ITEMS);
+  sheet.appendRow([
+    String(body.snackName).trim(),
+    body.link || '',
+    body.price ? Number(body.price) : '',
+    body.quantity ? Number(body.quantity) : 1,
+    'Y',
+  ]);
+
+  return jsonResponse({ success: true });
+}
+
+function removeFixedItem(body) {
+  const row = Number(body.rowIndex);
+  if (!row || row < 2) return jsonResponse({ error: '유효하지 않은 항목입니다.' });
+
+  const sheet = getSheet(SHEET.FIXED_ITEMS);
+  sheet.deleteRow(row);
+  return jsonResponse({ success: true });
+}
+
+function toggleFixedItem(body) {
+  const row = Number(body.rowIndex);
+  if (!row || row < 2) return jsonResponse({ error: '유효하지 않은 항목입니다.' });
+
+  const sheet = getSheet(SHEET.FIXED_ITEMS);
+  const current = sheet.getRange(row, 5).getValue();
+  const newVal = (current === 'Y' || current === true) ? 'N' : 'Y';
+  sheet.getRange(row, 5).setValue(newVal);
+  return jsonResponse({ success: true, active: newVal === 'Y' });
+}
+
+// 매월 1일에 고정 품목을 해당 월 추천목록에 삽입
+function insertFixedItemsForMonth(monthOverride) {
+  const month = monthOverride || getCurrentMonthKST();
+  const fixedSheet = getSheet(SHEET.FIXED_ITEMS);
+  if (!fixedSheet) return jsonResponse({ success: false, error: '고정품목 시트가 없습니다.' });
+
+  const fixedData = fixedSheet.getDataRange().getValues();
+  const sugSheet = getSheet(SHEET.SUGGESTIONS);
+  const sugData = sugSheet.getDataRange().getValues();
+
+  // 해당 월에 이미 존재하는 간식 이름 수집
+  const existing = new Set();
+  for (let i = 1; i < sugData.length; i++) {
+    if (normalizeMonth(sugData[i][0]) === month) {
+      existing.add(String(sugData[i][2]).trim());
+    }
+  }
+
+  let inserted = 0;
+  const now = new Date();
+  for (let i = 1; i < fixedData.length; i++) {
+    const row = fixedData[i];
+    const name = String(row[0]).trim();
+    const active = row[4] === 'Y' || row[4] === true;
+
+    if (!active || !name) continue;
+    if (existing.has(name)) continue;
+
+    sugSheet.appendRow([
+      month,
+      '',
+      name,
+      row[1] || '',
+      row[2] || '',
+      '',
+      0,
+      now,
+      'pending',
+      '',
+      '',
+      row[3] || 1,
+    ]);
+    inserted++;
+  }
+
+  return jsonResponse({ success: true, inserted: inserted });
 }

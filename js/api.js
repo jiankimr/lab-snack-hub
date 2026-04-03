@@ -84,4 +84,25 @@ const API = {
   async carryOver(month) {
     return this.post({ action: 'carryOver', month });
   },
+
+  // ─── 고정 품목 ───
+  async getFixedItems() {
+    return this.request('getFixedItems');
+  },
+
+  async addFixedItem({ snackName, link, price, quantity }) {
+    return this.post({ action: 'addFixedItem', snackName, link, price, quantity });
+  },
+
+  async removeFixedItem(rowIndex) {
+    return this.post({ action: 'removeFixedItem', rowIndex });
+  },
+
+  async toggleFixedItem(rowIndex) {
+    return this.post({ action: 'toggleFixedItem', rowIndex });
+  },
+
+  async insertFixedItems(month) {
+    return this.post({ action: 'insertFixedItems', month });
+  },
 };

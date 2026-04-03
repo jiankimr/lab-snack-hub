@@ -1729,6 +1729,25 @@ textarea.form-input {
   margin-top: var(--space-lg);
 }
 
+.btn-toggle-fixed,
+.btn-remove-fixed {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+}
+
+.btn-toggle-fixed:hover,
+.btn-remove-fixed:hover {
+  background: var(--bg-alt);
+}
+
+.row-inactive td {
+  opacity: 0.45;
+}
+
 .btn-admin {
   display: inline-flex;
   align-items: center;

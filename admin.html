@@ -109,6 +109,48 @@
       </div>
     </div>
 
+    <!-- Fixed Items -->
+    <div class="admin-card">
+      <h3 class="admin-card-title"><i class="bi bi-pin-angle-fill"></i> 고정 품목 관리</h3>
+      <p class="admin-card-desc">매월 1일에 자동으로 추천목록에 추가됩니다. 좋아요는 0으로 초기화됩니다.</p>
+
+      <div class="admin-table-wrap" id="fixed-items-list">
+        <p style="color:var(--text-tertiary); text-align:center; padding:var(--space-2xl) 0;">로딩 중...</p>
+      </div>
+
+      <div class="admin-actions">
+        <button class="btn-admin accent" id="btn-insert-fixed">
+          <i class="bi bi-arrow-down-circle"></i> 이번 달 추천목록에 고정 품목 추가
+        </button>
+      </div>
+
+      <div class="fixed-add-form" style="margin-top:var(--space-lg);">
+        <form id="fixed-form" class="suggest-form">
+          <div class="suggest-form-row">
+            <div class="suggest-input-group grow">
+              <i class="bi bi-cookie"></i>
+              <input type="text" class="suggest-input" id="fixed-name" required placeholder="간식 이름">
+            </div>
+            <div class="suggest-input-group">
+              <i class="bi bi-link-45deg"></i>
+              <input type="url" class="suggest-input" id="fixed-link" placeholder="링크 (선택)">
+            </div>
+            <div class="suggest-input-group medium">
+              <i class="bi bi-tag"></i>
+              <input type="number" class="suggest-input" id="fixed-price" placeholder="가격 (선택)" min="0">
+            </div>
+            <div class="suggest-input-group medium">
+              <i class="bi bi-box"></i>
+              <input type="number" class="suggest-input" id="fixed-qty" placeholder="수량" min="1" value="1">
+            </div>
+            <button type="submit" class="btn-admin green" style="white-space:nowrap;">
+              <i class="bi bi-plus-lg"></i> 추가
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Quick Links -->
     <div class="admin-card">
       <h3 class="admin-card-title"><i class="bi bi-link-45deg"></i> 바로가기</h3>

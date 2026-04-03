@@ -6,7 +6,7 @@
  */
 const CONFIG = {
   // Google Apps Script Web App URL (배포 후 교체)
-  API_BASE: 'https://script.google.com/macros/s/AKfycbyZLBYABLyBswngVz0I3DDZZgYB4jd0YIznGy9Pd54HBy4UOoNqIRRfKXxDjDim3Bi3aA/exec',
+  API_BASE: 'https://script.google.com/macros/s/AKfycbziBAYJNR3CAkNHIclhcH4JOeym6wLRrCaC_z22iUg_Lqi82gWIP9ozEkmnv-y7B_joqA/exec',
 
   // 월 예산 (원)
   MONTHLY_BUDGET: 200000,

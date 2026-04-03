@@ -242,6 +242,105 @@
     return false;
   }
 
+  // ─── Fixed Items ───
+  async function loadFixedItems() {
+    const container = $('#fixed-items-list');
+    try {
+      const data = await API.getFixedItems();
+      const items = data.items || [];
+
+      if (items.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-tertiary); text-align:center; padding:var(--space-lg) 0;">등록된 고정 품목이 없습니다.</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>간식</th>
+              <th style="width:100px">예상가</th>
+              <th style="width:60px">수량</th>
+              <th style="width:40px">링크</th>
+              <th style="width:60px">활성</th>
+              <th style="width:50px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(item => `
+              <tr class="${item.active ? '' : 'row-inactive'}">
+                <td style="font-weight:600">${escapeHtml(item.snackName)}</td>
+                <td style="color:var(--text-secondary)">${item.price ? formatKRW(item.price) : '—'}</td>
+                <td style="text-align:center">${item.quantity || 1}</td>
+                <td style="text-align:center">${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" style="color:var(--accent)"><i class="bi bi-link-45deg"></i></a>` : ''}</td>
+                <td style="text-align:center">
+                  <button class="btn-toggle-fixed" data-row="${item.rowIndex}" title="${item.active ? '비활성화' : '활성화'}">
+                    <i class="bi bi-${item.active ? 'toggle-on' : 'toggle-off'}" style="font-size:1.2rem;color:${item.active ? 'var(--green)' : 'var(--text-tertiary)'}"></i>
+                  </button>
+                </td>
+                <td style="text-align:center">
+                  <button class="btn-remove-fixed" data-row="${item.rowIndex}" title="삭제">
+                    <i class="bi bi-trash" style="color:var(--text-tertiary)"></i>
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+
+      container.querySelectorAll('.btn-toggle-fixed').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
+          try {
+            await API.toggleFixedItem(btn.dataset.row);
+            loadFixedItems();
+          } catch { showToast('상태 변경 실패', true); }
+        });
+      });
+
+      container.querySelectorAll('.btn-remove-fixed').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('이 고정 품목을 삭제하시겠습니까?')) return;
+          btn.disabled = true;
+          try {
+            await API.removeFixedItem(btn.dataset.row);
+            showToast('고정 품목 삭제됨');
+            loadFixedItems();
+          } catch { showToast('삭제 실패', true); }
+        });
+      });
+    } catch {
+      container.innerHTML = '<p style="color:var(--red); text-align:center;">고정 품목을 불러올 수 없습니다.</p>';
+    }
+  }
+
+  function initFixedForm() {
+    const form = $('#fixed-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+
+      try {
+        await API.addFixedItem({
+          snackName: $('#fixed-name').value.trim(),
+          link: $('#fixed-link').value.trim(),
+          price: $('#fixed-price').value,
+          quantity: $('#fixed-qty').value || '1',
+        });
+        form.reset();
+        $('#fixed-qty').value = '1';
+        showToast('고정 품목이 추가되었습니다');
+        loadFixedItems();
+      } catch {
+        showToast('고정 품목 추가 실패', true);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
   function initLinks() {
     const spreadsheet = $('#link-spreadsheet');
     const receipt = $('#link-receipt');
@@ -260,8 +359,22 @@
     $('#btn-slack').addEventListener('click', handleSlack);
     $('#btn-purchased').addEventListener('click', handlePurchased);
 
+    $('#btn-insert-fixed').addEventListener('click', handleInsertFixed);
+
     initLinks();
+    initFixedForm();
     loadSuggestions();
+    loadFixedItems();
+  }
+
+  async function handleInsertFixed() {
+    const month = getMonth();
+    if (!confirm(`${month} 추천목록에 고정 품목을 추가하시겠습니까?\n(이미 있는 품목은 중복 추가되지 않습니다)`)) return;
+    try {
+      const res = await API.insertFixedItems(month);
+      showToast(`고정 품목 ${res.inserted || 0}개 추가됨`);
+      loadSuggestions();
+    } catch { showToast('고정 품목 추가 실패', true); }
   }
 
   // ─── Init ───
