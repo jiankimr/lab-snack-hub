@@ -242,6 +242,67 @@
     return false;
   }
 
+  // ─── Board Month Control ───
+  async function loadBoardMonthDisplay() {
+    try {
+      const data = await API.getBoardMonth();
+      const bm = data.boardMonth;
+      const m = Number(bm.split('-')[1]);
+
+      $('#board-month-display').textContent = bm;
+      $('#board-title-display').textContent = `${m}월 간식 보드`;
+    } catch {
+      $('#board-month-display').textContent = '오류';
+    }
+  }
+
+  async function handleArchive() {
+    const month = getMonth();
+    if (!confirm(
+      `${month}의 확정/구매완료 항목을 공개 보드에서 숨깁니다.\n\n` +
+      `숨긴 항목은 스프레드시트에서 "archived"로 표시되며,\n` +
+      `공개 보드와 이달의 확정 간식 목록에서 사라집니다.\n\n` +
+      `계속하시겠습니까?`
+    )) return;
+
+    try {
+      const res = await API.archiveItems(month);
+      showToast(`${res.archived || 0}개 항목이 정리되었습니다`);
+      loadSuggestions();
+    } catch {
+      showToast('보드 정리 실패', true);
+    }
+  }
+
+  async function handleAdvanceBoard() {
+    let bm;
+    try {
+      const data = await API.getBoardMonth();
+      bm = data.boardMonth;
+    } catch {
+      return showToast('보드 월 조회 실패', true);
+    }
+
+    const [y, mStr] = bm.split('-');
+    let ny = Number(y), nm = Number(mStr) + 1;
+    if (nm > 12) { nm = 1; ny++; }
+    const nextMonth = `${ny}-${pad(nm)}`;
+
+    if (!confirm(
+      `공개 보드 제목을 변경합니다.\n\n` +
+      `${Number(mStr)}월 간식 보드 → ${nm}월 간식 보드\n\n` +
+      `(데이터는 자동으로 현재 달을 사용합니다)`
+    )) return;
+
+    try {
+      await API.setBoardMonth(nextMonth);
+      showToast(`${nm}월 간식 보드로 전환되었습니다`);
+      loadBoardMonthDisplay();
+    } catch {
+      showToast('보드 월 전환 실패', true);
+    }
+  }
+
   // ─── Fixed Items ───
   async function loadFixedItems() {
     const container = $('#fixed-items-list');
@@ -360,11 +421,14 @@
     $('#btn-purchased').addEventListener('click', handlePurchased);
 
     $('#btn-insert-fixed').addEventListener('click', handleInsertFixed);
+    $('#btn-archive').addEventListener('click', handleArchive);
+    $('#btn-advance-board').addEventListener('click', handleAdvanceBoard);
 
     initLinks();
     initFixedForm();
     loadSuggestions();
     loadFixedItems();
+    loadBoardMonthDisplay();
   }
 
   async function handleInsertFixed() {

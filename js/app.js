@@ -15,6 +15,21 @@
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   }
 
+  let boardDisplayMonth = null;
+
+  async function loadBoardDisplayMonth() {
+    try {
+      const data = await API.getBoardMonth();
+      boardDisplayMonth = data.boardMonth;
+    } catch {
+      const d = kstNow();
+      const m = d.getMonth() + 1;
+      const nm = m === 12 ? 1 : m + 1;
+      const ny = m === 12 ? d.getFullYear() + 1 : d.getFullYear();
+      boardDisplayMonth = `${ny}-${String(nm).padStart(2, '0')}`;
+    }
+  }
+
   function formatKRW(n) {
     return '\u20A9' + Number(n || 0).toLocaleString('ko-KR');
   }
@@ -65,21 +80,14 @@
   }
 
   function updateMonthTitle() {
-    const now = kstNow();
-    const y = now.getFullYear();
-    const m = now.getMonth() + 1;
-    const d = now.getDate();
-
-    if (y === 2026 && m === 4 && d <= 3) {
-      $('#month-title').textContent = '4월 간식 보드';
-      $('#month-deadline').textContent = '(4월 3일 구매 확정 예정)';
-      return;
-    }
-
-    const nextM = m === 12 ? 1 : m + 1;
-    const lastDay = new Date(y, m, 0).getDate();
-    $('#month-title').textContent = `${nextM}월 간식 보드`;
-    $('#month-deadline').textContent = `(${m}월 ${lastDay}일 구매 확정 예정)`;
+    if (!boardDisplayMonth) return;
+    const [yStr, mStr] = boardDisplayMonth.split('-');
+    const m = Number(mStr);
+    const prevM = m === 1 ? 12 : m - 1;
+    const prevY = m === 1 ? Number(yStr) - 1 : Number(yStr);
+    const lastDay = new Date(prevY, prevM, 0).getDate();
+    $('#month-title').textContent = `${m}월 간식 보드`;
+    $('#month-deadline').textContent = `(${prevM}월 ${lastDay}일 구매 확정 예정)`;
   }
 
   // ─── State ───
@@ -174,11 +182,13 @@
 
     try {
       const data = await API.getSuggestions(todayMonthKey());
-      allItems = data.suggestions || [];
+      const raw = data.suggestions || [];
 
+      allItems = raw.filter(i => i.status !== 'archived');
       const confirmed = allItems.filter(i => i.status === 'confirmed' || i.status === 'purchased');
 
-      $('#suggestion-count').textContent = `${allItems.length}개 추천`;
+      const pendingCount = allItems.filter(i => i.status === 'pending').length;
+      $('#suggestion-count').textContent = `${pendingCount}개 추천`;
 
       if (confirmed.length > 0) {
         confirmedSection.style.display = '';
@@ -275,11 +285,12 @@
   }
 
   // ─── Init ───
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     initNav();
-    updateMonthTitle();
     initSort();
     initForm();
+    await loadBoardDisplayMonth();
+    updateMonthTitle();
     loadSuggestions();
   });
 })();

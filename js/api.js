@@ -33,6 +33,19 @@ const API = {
     return res.json();
   },
 
+  // ─── 보드 월 ───
+  async getBoardMonth() {
+    return this.request('getBoardMonth');
+  },
+
+  async setBoardMonth(month) {
+    return this.post({ action: 'setBoardMonth', month });
+  },
+
+  async archiveItems(month) {
+    return this.post({ action: 'archiveItems', month });
+  },
+
   // ─── 추천 ───
   async getSuggestions(month) {
     return this.request('getSuggestions', { month });

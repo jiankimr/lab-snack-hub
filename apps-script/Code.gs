@@ -31,11 +31,44 @@ function jsonResponse(data) {
 
 function getCurrentMonthKST() {
   const now = new Date();
-  // KST = UTC+9
   const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   const y = kst.getUTCFullYear();
   const m = String(kst.getUTCMonth() + 1).padStart(2, '0');
   return `${y}-${m}`;
+}
+
+function getStoredBoardMonth() {
+  const sheet = getSheet(SHEET.CONFIG);
+  if (!sheet) return getCurrentMonthKST();
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === 'boardMonth') {
+      const val = String(data[i][1]).trim();
+      if (val && val.length >= 7) return val.substring(0, 7);
+    }
+  }
+  return getCurrentMonthKST();
+}
+
+function setStoredBoardMonth(body) {
+  const month = body.month;
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+    return jsonResponse({ error: '올바른 월 형식이 아닙니다 (YYYY-MM).' });
+  }
+
+  const sheet = getSheet(SHEET.CONFIG);
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === 'boardMonth') {
+      sheet.getRange(i + 1, 2).setValue(month);
+      return jsonResponse({ success: true, boardMonth: month });
+    }
+  }
+
+  sheet.appendRow(['boardMonth', month]);
+  return jsonResponse({ success: true, boardMonth: month });
 }
 
 function parseDate(dateStr) {
@@ -78,6 +111,8 @@ function doGet(e) {
         return getPurchaseHistory();
       case 'getFixedItems':
         return getFixedItems();
+      case 'getBoardMonth':
+        return jsonResponse({ boardMonth: getStoredBoardMonth() });
       default:
         return jsonResponse({ error: 'Unknown action' });
     }
@@ -118,6 +153,10 @@ function doPost(e) {
         return toggleFixedItem(body);
       case 'insertFixedItems':
         return insertFixedItemsForMonth(body.month);
+      case 'setBoardMonth':
+        return setStoredBoardMonth(body);
+      case 'archiveItems':
+        return archiveItems(body);
       default:
         return jsonResponse({ error: 'Unknown action' });
     }
@@ -345,6 +384,26 @@ function carryOver(body) {
   }
 
   return jsonResponse({ success: true, carried: carried, nextMonth: nextMonth });
+}
+
+// ─── 보드 정리 (확정/구매완료 항목 아카이브) ───
+function archiveItems(body) {
+  const month = body.month || getCurrentMonthKST();
+  const sheet = getSheet(SHEET.SUGGESTIONS);
+  const data = sheet.getDataRange().getValues();
+
+  let archived = 0;
+  for (let i = 1; i < data.length; i++) {
+    if (normalizeMonth(data[i][0]) === month) {
+      const status = data[i][8];
+      if (status === 'confirmed' || status === 'purchased') {
+        sheet.getRange(i + 1, 9).setValue('archived');
+        archived++;
+      }
+    }
+  }
+
+  return jsonResponse({ success: true, archived: archived });
 }
 
 // ─── 슬랙 공지 ───
