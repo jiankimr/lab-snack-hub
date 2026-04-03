@@ -54,7 +54,7 @@
 
     try {
       const data = await API.getSuggestions(month);
-      suggestions = data.suggestions || [];
+      suggestions = (data.suggestions || []).filter(i => i.status !== 'archived');
 
       if (suggestions.length === 0) {
         container.innerHTML = '<p style="color:var(--text-tertiary); text-align:center; padding:var(--space-2xl) 0;">이번 달 추천 항목이 없습니다.</p>';
