@@ -258,6 +258,27 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-tertiary);
 }
 
+.suggest-input-group {
+  position: relative;
+}
+
+.input-hint {
+  position: absolute;
+  bottom: -18px;
+  left: var(--space-sm);
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.input-hint i {
+  font-size: 0.65rem;
+}
+
 .btn-suggest {
   display: inline-flex;
   align-items: center;

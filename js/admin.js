@@ -374,6 +374,14 @@
     }
   }
 
+  function isValidSSGLink(url) {
+    if (!url) return true;
+    try {
+      const host = new URL(url).hostname.toLowerCase();
+      return host === 'ssg.com' || host.endsWith('.ssg.com');
+    } catch { return false; }
+  }
+
   function initFixedForm() {
     const form = $('#fixed-form');
     if (!form) return;
@@ -381,12 +389,19 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = form.querySelector('button[type="submit"]');
+
+      const link = $('#fixed-link').value.trim();
+      if (link && !isValidSSGLink(link)) {
+        showToast('구매 링크는 SSG.COM(ssg.com)만 등록 가능합니다.', true);
+        return;
+      }
+
       btn.disabled = true;
 
       try {
         await API.addFixedItem({
           snackName: $('#fixed-name').value.trim(),
-          link: $('#fixed-link').value.trim(),
+          link: link,
           price: $('#fixed-price').value,
           quantity: $('#fixed-qty').value || '1',
         });
